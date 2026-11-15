@@ -1,0 +1,66 @@
+<!-- templates/index.html -->
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>English Classes</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 1rem; max-width: 780px; }
+    table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    th, td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
+    form.inline { display: inline; }
+    input, select { padding: 4px; font-size: 14px; }
+    .msg { background: #e6ffed; padding: 6px; margin-bottom: 8px; }
+    @media (max-width: 600px) { th:nth-child(6), td:nth-child(6) { display: none; } }
+  </style>
+</head>
+<body>
+  <h2>English Class Tracker</h2>
+
+  {% with msgs = get_flashed_messages() %}
+    {% for m in msgs %}<div class="msg">{{ m }}</div>{% endfor %}
+  {% endwith %}
+
+  <h3>Add a class</h3>
+  <form method="post" action="{{ url_for('add') }}">
+    <input name="class_number" placeholder="#" required style="width:70px">
+    <input name="date_taken" type="date" required>
+    <input name="topic" placeholder="Topic">
+    <input name="notes" placeholder="Notes">
+    <select name="status">
+      <option>Pending</option><option>In Progress</option><option>Completed</option>
+    </select>
+    <button type="submit">Add</button>
+  </form>
+
+  <h3>Classes</h3>
+  <table>
+    <tr><th>#</th><th>Date</th><th>Topic</th><th>Status</th><th>Notes</th><th>Actions</th></tr>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.class_number }}</td>
+      <td>{{ r.date_taken }}</td>
+      <td>{{ r.topic or "" }}</td>
+      <td>
+        <form method="post" action="{{ url_for('update', cid=r.id) }}" class="inline">
+          <select name="status" onchange="this.form.submit()">
+            {% for s in ["Pending","In Progress","Completed"] %}
+              <option {% if r.status == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+          </select>
+          <input type="hidden" name="topic" value="{{ r.topic or '' }}">
+          <input type="hidden" name="notes" value="{{ r.notes or '' }}">
+        </form>
+      </td>
+      <td>{{ r.notes or "" }}</td>
+      <td>
+        <form method="post" action="{{ url_for('delete', cid=r.id) }}" class="inline"
+              onsubmit="return confirm('Delete class {{ r.class_number }}?')">
+          <button>Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
